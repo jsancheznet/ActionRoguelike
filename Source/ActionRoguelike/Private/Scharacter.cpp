@@ -3,8 +3,12 @@
 
 #include "Scharacter.h"
 
+#include "SInteractionComponent.h"
 #include "Camera/CameraComponent.h"
+#include "SAttributeComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AScharacter::AScharacter()
@@ -13,23 +17,45 @@ AScharacter::AScharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
+	SpringArmComp->bUsePawnControlRotation = true;
 	SpringArmComp->SetupAttachment(RootComponent);
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	CameraComp->SetupAttachment(SpringArmComp);
+
+	InteractionComponent = CreateDefaultSubobject<USInteractionComponent>("InteractionComponent");
+
+	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
-// Called when the game starts or when spawned
 void AScharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
 void AScharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// -- Rotation Visualization -- //
+	const float DrawScale = 100.0f;
+	const float Thickness = 5.0f;
+
+	FVector LineStart = GetActorLocation();
+	// Offset to the right of pawn
+	LineStart += GetActorRightVector() * 100.0f;
+	// Set line end in direction of the actor's forward
+	FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
+	// Draw Actor's Direction
+	DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
+
+	FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
+	// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
+	DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
 
 }
 
@@ -39,15 +65,128 @@ void AScharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AScharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AScharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &AScharacter::Turn);
+	PlayerInputComponent->BindAxis("LookUp", this, &AScharacter::LookUp);
+	
+	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &AScharacter::PrimaryAttack);
+	PlayerInputComponent->BindAction("BlackHoleAttack", IE_Pressed, this, &AScharacter::BlackHoleAttack);
+	PlayerInputComponent->BindAction("TeleportAttack", IE_Pressed, this, &AScharacter::TeleportAttack);	
+	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &AScharacter::PrimaryInteract);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AScharacter::Jump);
+}
+
+void AScharacter::SpawnProjectileClass(TSubclassOf<AActor> ProjectileClass)
+{
+	if(ensure(ProjectileClass))
+	{
+		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+		FVector Target = GetProjectileTarget();
+		FRotator ProjectileRotator = UKismetMathLibrary::FindLookAtRotation(HandLocation, Target);
+		FActorSpawnParameters SpawnParams = {};
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Instigator = this;
+		FTransform SpawnTransform = FTransform(ProjectileRotator, HandLocation);
+		GetWorld()->SpawnActor(ProjectileClass, &SpawnTransform, SpawnParams);
+	}
+}
+
+FVector AScharacter::GetProjectileTarget()
+{
+	FVector Result = {};
+	
+	// Line Trace from the Camera to World to get the desired impact point of the projectile, if the line trace fails to hit something, use the end location of the trace
+	FVector Start = CameraComp->GetComponentLocation();
+	FVector End = CameraComp->GetComponentLocation() + (GetControlRotation().Vector() * 5000.0f);	
+	FCollisionObjectQueryParams QueryParams = {};
+	QueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	QueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	QueryParams.AddObjectTypesToQuery(ECC_Pawn);
+	FHitResult HitResult = {};	
+	bool bLineTraceHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, QueryParams);
+	// DrawDebugLine(GetWorld(), Start, End, FColor::Magenta, false, 10.0f);
+
+	if(bLineTraceHit)
+	{
+		Result = HitResult.ImpactPoint;
+	}
+	else
+	{
+		Result = End;
+	}
+	
+	return Result;
 }
 
 void AScharacter::MoveForward(float Value)
 {
-	AddMovementInput(GetActorForwardVector(), Value);
+	FRotator Rotation = GetControlRotation();
+	Rotation.Pitch = 0.0f;
+	Rotation.Roll = 0.0f;
+	AddMovementInput(Rotation.Vector(), Value);
+}
+
+void AScharacter::MoveRight(float Value)
+{
+	FRotator ControlRotation = GetControlRotation();
+	ControlRotation.Pitch = 0.0f;
+	ControlRotation.Roll = 0.0f;
+    FVector RightVector = UKismetMathLibrary::GetRightVector(ControlRotation);	
+	AddMovementInput(RightVector, Value);
 }
 
 void AScharacter::Turn(float Value)
 {
 	AddControllerYawInput(Value);
+}
+
+void AScharacter::LookUp(float Value)
+{
+	AddControllerPitchInput(-Value);
+}
+
+void AScharacter::Jump()
+{
+	Super::Jump();
+}
+
+void AScharacter::PrimaryAttack()
+{
+	PlayAnimMontage(AttackAnim);
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &AScharacter::PrimaryAttack_TimeElapsed, 0.2f);
+}
+
+void AScharacter::BlackHoleAttack()
+{
+	PlayAnimMontage(AttackAnim);
+	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAttack, this, &AScharacter::BlackHoleAttack_TimeElapsed, 0.2f);	
+}
+
+void AScharacter::TeleportAttack()
+{
+	PlayAnimMontage(AttackAnim);
+	GetWorldTimerManager().SetTimer(TimerHandle_TeleportAttack, this, &AScharacter::TeleportAttack_TimeElapsed, 0.2f);	
+}
+
+void AScharacter::PrimaryInteract()
+{
+	if(InteractionComponent)
+	{
+		InteractionComponent->PrimaryInteract();	
+	}
+}
+
+void AScharacter::PrimaryAttack_TimeElapsed()
+{
+	SpawnProjectileClass(MagicProjectileClass);
+}
+
+void AScharacter::BlackHoleAttack_TimeElapsed()
+{
+	SpawnProjectileClass(BlackHoleProjectileClass);
+}
+
+void AScharacter::TeleportAttack_TimeElapsed()
+{
+	SpawnProjectileClass(TeleportProjectileClass);
 }
