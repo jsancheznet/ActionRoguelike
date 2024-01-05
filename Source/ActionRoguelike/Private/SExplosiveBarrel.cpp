@@ -43,7 +43,7 @@ void ASExplosiveBarrel::Tick(float DeltaTime)
 
 void ASExplosiveBarrel::OnActorHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("HIT!"));
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("BARREL ON ACTOR HIT!"));
 	RadialForceComp->FireImpulse();
 
 	USAttributeComponent* AttribComp = OtherActor->FindComponentByClass<USAttributeComponent>();

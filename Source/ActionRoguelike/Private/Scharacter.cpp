@@ -71,7 +71,7 @@ void AScharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &AScharacter::PrimaryAttack);
 	PlayerInputComponent->BindAction("BlackHoleAttack", IE_Pressed, this, &AScharacter::BlackHoleAttack);
-	PlayerInputComponent->BindAction("TeleportAttack", IE_Pressed, this, &AScharacter::TeleportAttack);	
+	PlayerInputComponent->BindAction("TeleportAttack", IE_Pressed, this, &AScharacter::DashAttack);	
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &AScharacter::PrimaryInteract);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AScharacter::Jump);
 }
@@ -102,9 +102,10 @@ FVector AScharacter::GetProjectileTarget()
 	QueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 	QueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
 	QueryParams.AddObjectTypesToQuery(ECC_Pawn);
-	FHitResult HitResult = {};	
-	bool bLineTraceHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, QueryParams);
-	// DrawDebugLine(GetWorld(), Start, End, FColor::Magenta, false, 10.0f);
+	FHitResult HitResult = {};
+	
+	// NOTE(Jorge): Tom uses SweepSingleByObjectType  with a sphere of 20.0f radius to make it easier for the player to hit targets	
+	bool bLineTraceHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, QueryParams); 
 
 	if(bLineTraceHit)
 	{
@@ -162,10 +163,10 @@ void AScharacter::BlackHoleAttack()
 	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAttack, this, &AScharacter::BlackHoleAttack_TimeElapsed, 0.2f);	
 }
 
-void AScharacter::TeleportAttack()
+void AScharacter::DashAttack()
 {
 	PlayAnimMontage(AttackAnim);
-	GetWorldTimerManager().SetTimer(TimerHandle_TeleportAttack, this, &AScharacter::TeleportAttack_TimeElapsed, 0.2f);	
+	GetWorldTimerManager().SetTimer(TimerHandle_DashAttack, this, &AScharacter::DashAttack_TimeElapsed, 0.2f);	
 }
 
 void AScharacter::PrimaryInteract()
@@ -186,7 +187,7 @@ void AScharacter::BlackHoleAttack_TimeElapsed()
 	SpawnProjectileClass(BlackHoleProjectileClass);
 }
 
-void AScharacter::TeleportAttack_TimeElapsed()
+void AScharacter::DashAttack_TimeElapsed()
 {
-	SpawnProjectileClass(TeleportProjectileClass);
+	SpawnProjectileClass(DashProjectileClass);
 }

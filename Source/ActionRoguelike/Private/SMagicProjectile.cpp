@@ -7,31 +7,21 @@
 
 ASMagicProjectile::ASMagicProjectile()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
+	SphereComp->SetSphereRadius(20.0f);
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);
+
+	DamageAmount = 20.0f;
 }
 
 void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(OtherActor != GetInstigator())
+	if(OtherActor && OtherActor != GetInstigator())
 	{
 		USAttributeComponent *AttributeComp =  Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
 		if(AttributeComp)
 		{
-			AttributeComp->ApplyHealthChange(-20.0f);
+			AttributeComp->ApplyHealthChange(-DamageAmount);
 			Destroy();
 		}
 	}
-}
-
-void ASMagicProjectile::BeginPlay()
-{
-	Super::BeginPlay();
-	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);	
-}
-
-void ASMagicProjectile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
