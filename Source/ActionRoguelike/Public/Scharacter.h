@@ -67,6 +67,11 @@ protected:
 	void PrimaryAttack_TimeElapsed();
  	void BlackHoleAttack_TimeElapsed();
 	void DashAttack_TimeElapsed();
+
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+
+	virtual void PostInitializeComponents() override;
 	
 	virtual void BeginPlay() override;
 

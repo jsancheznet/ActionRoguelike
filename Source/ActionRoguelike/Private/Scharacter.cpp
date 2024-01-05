@@ -31,6 +31,12 @@ AScharacter::AScharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
+void AScharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
+	AttributeComp->OnHealthChanged.AddDynamic(this, &AScharacter::OnHealthChanged);
+}
 void AScharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -190,4 +196,13 @@ void AScharacter::BlackHoleAttack_TimeElapsed()
 void AScharacter::DashAttack_TimeElapsed()
 {
 	SpawnProjectileClass(DashProjectileClass);
+}
+
+void AScharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
+{
+	if(NewHealth <= 0.0f && Delta < 0.0f)
+	{
+		APlayerController *PC = Cast<APlayerController>(GetController());
+		DisableInput(PC);
+	}
 }
