@@ -8,7 +8,9 @@
 #include "SAttributeComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Particles/ParticleSystem.h"
 
 // Sets default values
 AScharacter::AScharacter()
@@ -26,6 +28,8 @@ AScharacter::AScharacter()
 	InteractionComponent = CreateDefaultSubobject<USInteractionComponent>("InteractionComponent");
 
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
+
+	// CastingProjectileVFX = CreateDefaultSubobject<UParticleSystem>("CastingVFX");	
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
