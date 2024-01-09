@@ -3,20 +3,15 @@
 #include "SInteractionComponent.h"
 
 #include "SGameplayInterface.h"
-// #include "EntitySystem/MovieSceneEntitySystemRunner.h"
 
-// Sets default values for this component's properties
 USInteractionComponent::USInteractionComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 void USInteractionComponent::PrimaryInteract()
 {
+	// TODO(Jsanchez): This raycasting does not take the crosshair in mind, copy the way projectiles are created 
 
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
@@ -27,9 +22,6 @@ void USInteractionComponent::PrimaryInteract()
 	ComponentOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 	
 	FVector End = EyeLocation + (EyeRotation.Vector()) * 1000;
-	
-	// FHitResult Hit = {};	
-	// bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams);
 
 	TArray<FHitResult> Hits;
 	FCollisionShape Shape;
@@ -53,20 +45,13 @@ void USInteractionComponent::PrimaryInteract()
 		float Radius = 30.0f;
 		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 16, Color, false, 2.0f);
 	}
-
 	
 	DrawDebugLine(GetWorld(), EyeLocation, End, Color, false, 2.0, 4.0f);
-
-
 }
 
-// Called when the game starts
 void USInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
 }
 
 
@@ -74,6 +59,4 @@ void USInteractionComponent::BeginPlay()
 void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
 }
