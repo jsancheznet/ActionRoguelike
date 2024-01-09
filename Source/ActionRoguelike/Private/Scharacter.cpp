@@ -36,6 +36,10 @@ void AScharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	
 	AttributeComp->OnHealthChanged.AddDynamic(this, &AScharacter::OnHealthChanged);
+
+	// Set material static values
+	GetMesh()->SetScalarParameterValueOnMaterials("HitFlashSpeed", 4.0f);
+	GetMesh()->SetVectorParameterValueOnMaterials("HitFlashColor", FVector(1.0f, 0.0f, 1.0f));
 }
 void AScharacter::BeginPlay()
 {
@@ -200,6 +204,11 @@ void AScharacter::DashAttack_TimeElapsed()
 
 void AScharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
 {
+	if(Delta < 0.0f)
+	{
+		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+	}
+	
 	if(NewHealth <= 0.0f && Delta < 0.0f)
 	{
 		APlayerController *PC = Cast<APlayerController>(GetController());
