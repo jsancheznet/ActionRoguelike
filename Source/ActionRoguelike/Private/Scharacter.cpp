@@ -33,6 +33,8 @@ AScharacter::AScharacter()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	HandSocketName = "Muzzle_01";
 }
 
 void AScharacter::PostInitializeComponents()
@@ -94,7 +96,7 @@ void AScharacter::SpawnProjectileClass(TSubclassOf<AActor> ProjectileClass)
 {
 	if(ensure(ProjectileClass))
 	{
-		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+		FVector HandLocation = GetMesh()->GetSocketLocation(HandSocketName);
 		FVector Target = GetProjectileTarget();
 		FRotator ProjectileRotator = UKismetMathLibrary::FindLookAtRotation(HandLocation, Target);
 		FActorSpawnParameters SpawnParams = {};
@@ -168,18 +170,21 @@ void AScharacter::Jump()
 void AScharacter::PrimaryAttack()
 {
 	PlayAnimMontage(AttackAnim);
+	PlayCastingSpellEffect();
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &AScharacter::PrimaryAttack_TimeElapsed, 0.2f);
 }
 
 void AScharacter::BlackHoleAttack()
 {
 	PlayAnimMontage(AttackAnim);
+	PlayCastingSpellEffect();	
 	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAttack, this, &AScharacter::BlackHoleAttack_TimeElapsed, 0.2f);	
 }
 
 void AScharacter::DashAttack()
 {
 	PlayAnimMontage(AttackAnim);
+	PlayCastingSpellEffect();	
 	GetWorldTimerManager().SetTimer(TimerHandle_DashAttack, this, &AScharacter::DashAttack_TimeElapsed, 0.2f);	
 }
 
@@ -189,6 +194,11 @@ void AScharacter::PrimaryInteract()
 	{
 		InteractionComponent->PrimaryInteract();	
 	}
+}
+
+void AScharacter::PlayCastingSpellEffect()
+{
+	UGameplayStatics::SpawnEmitterAttached(CastingEffect, GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
 }
 
 void AScharacter::PrimaryAttack_TimeElapsed()

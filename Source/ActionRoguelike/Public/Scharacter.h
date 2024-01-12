@@ -47,6 +47,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	UAnimMontage *AttackAnim;
 
+	/* Particle System played during attack animation */
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	UParticleSystem* CastingEffect;	
+
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName HandSocketName;
+
 	FTimerHandle TimerHandle_PrimaryAttack;
 	FTimerHandle TimerHandle_BlackHoleAttack;
 	FTimerHandle TimerHandle_DashAttack;
@@ -63,6 +70,7 @@ protected:
 	void BlackHoleAttack();
 	void DashAttack();
 	void PrimaryInteract();
+	void PlayCastingSpellEffect();	
 
 	void PrimaryAttack_TimeElapsed();
  	void BlackHoleAttack_TimeElapsed();
