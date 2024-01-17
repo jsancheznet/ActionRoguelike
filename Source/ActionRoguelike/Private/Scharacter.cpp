@@ -35,6 +35,8 @@ AScharacter::AScharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	HandSocketName = "Muzzle_01";
+
+	TimeToHitParamName = "TimeToHit";
 }
 
 void AScharacter::PostInitializeComponents()
@@ -220,7 +222,7 @@ void AScharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 {
 	if(Delta < 0.0f)
 	{
-		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 	}
 	
 	if(NewHealth <= 0.0f && Delta < 0.0f)
