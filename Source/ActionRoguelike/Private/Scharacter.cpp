@@ -94,6 +94,11 @@ void AScharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AScharacter::Jump);
 }
 
+void AScharacter::HealSelf(float Amount)
+{
+	AttributeComp->ApplyHealthChange(this, Amount);
+}
+
 void AScharacter::SpawnProjectileClass(TSubclassOf<AActor> ProjectileClass)
 {
 	if(ensure(ProjectileClass))
