@@ -4,6 +4,8 @@
 
 #include "SGameplayInterface.h"
 
+static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable debug lines for Interact Component"), ECVF_Cheat);
+
 USInteractionComponent::USInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -11,7 +13,7 @@ USInteractionComponent::USInteractionComponent()
 
 void USInteractionComponent::PrimaryInteract()
 {
-	// TODO(Jsanchez): This raycasting does not take the crosshair in mind, copy the way projectiles are created 
+	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
 
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
@@ -30,6 +32,12 @@ void USInteractionComponent::PrimaryInteract()
 	FColor Color = bBlockingHit ? FColor::Green : FColor::Red;
 	for(FHitResult Hit : Hits)
 	{
+		if(bDebugDraw)
+		{
+			float Radius = 30.0f;
+			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 16, Color, false, 2.0f);			
+		}
+		
 		AActor *HitActor = Hit.GetActor();
 		if(HitActor)
 		{
@@ -41,12 +49,12 @@ void USInteractionComponent::PrimaryInteract()
 				break;
 			}
 		}
-
-		float Radius = 30.0f;
-		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 16, Color, false, 2.0f);
 	}
-	
-	DrawDebugLine(GetWorld(), EyeLocation, End, Color, false, 2.0, 4.0f);
+
+	if(bDebugDraw)
+	{
+		DrawDebugLine(GetWorld(), EyeLocation, End, Color, false, 2.0, 4.0f);		
+	}
 }
 
 void USInteractionComponent::BeginPlay()

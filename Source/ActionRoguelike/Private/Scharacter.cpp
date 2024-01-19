@@ -55,6 +55,11 @@ void AScharacter::BeginPlay()
 	
 }
 
+FVector AScharacter::GetPawnViewLocation() const
+{
+	return CameraComp->GetComponentLocation();
+}
+
 void AScharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

@@ -2,10 +2,8 @@
 
 #include "SMagicProjectile.h"
 
-#include "SAttributeComponent.h"
+#include "SGameplayFunctionLibrary.h"
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "Sound/SoundCue.h"
 
 ASMagicProjectile::ASMagicProjectile()
 {
@@ -19,17 +17,9 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 {
 	if(OtherActor && OtherActor != GetInstigator())
 	{
-		USAttributeComponent *AttributeComp =  Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
-		if(AttributeComp)
+		if(USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageAmount, SweepResult))
 		{
-			AttributeComp->ApplyHealthChange(GetInstigator(), -DamageAmount);
+			Explode();
 		}
-
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation(), GetActorRotation());
-
-#if !UE_BUILD_SHIPPING
-		DrawDebugSphere(GetWorld(), GetActorLocation(), 10.0f, 12, FColor::Magenta, false, 1.0f);
-#endif
-		Explode();
 	}	
 }
