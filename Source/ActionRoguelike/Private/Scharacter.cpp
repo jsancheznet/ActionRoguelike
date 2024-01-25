@@ -3,19 +3,16 @@
 
 #include "Scharacter.h"
 
+#include "SActionComponent.h"
 #include "SInteractionComponent.h"
 #include "Camera/CameraComponent.h"
 #include "SAttributeComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Particles/ParticleSystem.h"
 
-// Sets default values
 AScharacter::AScharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
@@ -29,12 +26,10 @@ AScharacter::AScharacter()
 
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
 
-	// CastingProjectileVFX = CreateDefaultSubobject<UParticleSystem>("CastingVFX");	
+	ActionComponent = CreateDefaultSubobject<USActionComponent>("ActionComponent");
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-
-	HandSocketName = "Muzzle_01";
 
 	TimeToHitParamName = "TimeToHit";
 }
@@ -52,7 +47,6 @@ void AScharacter::PostInitializeComponents()
 void AScharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 FVector AScharacter::GetPawnViewLocation() const
@@ -96,55 +90,16 @@ void AScharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("BlackHoleAttack", IE_Pressed, this, &AScharacter::BlackHoleAttack);
 	PlayerInputComponent->BindAction("TeleportAttack", IE_Pressed, this, &AScharacter::DashAttack);	
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &AScharacter::PrimaryInteract);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AScharacter::SprintStart);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AScharacter::SprintStop);
+	
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AScharacter::Jump);
 }
 
 void AScharacter::HealSelf(float Amount)
 {
 	AttributeComp->ApplyHealthChange(this, Amount);
-}
-
-void AScharacter::SpawnProjectileClass(TSubclassOf<AActor> ProjectileClass)
-{
-	if(ensure(ProjectileClass))
-	{
-		FVector HandLocation = GetMesh()->GetSocketLocation(HandSocketName);
-		FVector Target = GetProjectileTarget();
-		FRotator ProjectileRotator = UKismetMathLibrary::FindLookAtRotation(HandLocation, Target);
-		FActorSpawnParameters SpawnParams = {};
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		SpawnParams.Instigator = this;
-		FTransform SpawnTransform = FTransform(ProjectileRotator, HandLocation);
-		GetWorld()->SpawnActor(ProjectileClass, &SpawnTransform, SpawnParams);
-	}
-}
-
-FVector AScharacter::GetProjectileTarget()
-{
-	FVector Result = {};
-	
-	// Line Trace from the Camera to World to get the desired impact point of the projectile, if the line trace fails to hit something, use the end location of the trace
-	FVector Start = CameraComp->GetComponentLocation();
-	FVector End = CameraComp->GetComponentLocation() + (GetControlRotation().Vector() * 5000.0f);	
-	FCollisionObjectQueryParams QueryParams = {};
-	QueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-	QueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
-	QueryParams.AddObjectTypesToQuery(ECC_Pawn);
-	FHitResult HitResult = {};
-	
-	// NOTE(Jorge): Tom uses SweepSingleByObjectType  with a sphere of 20.0f radius to make it easier for the player to hit targets	
-	bool bLineTraceHit = GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, QueryParams); 
-
-	if(bLineTraceHit)
-	{
-		Result = HitResult.ImpactPoint;
-	}
-	else
-	{
-		Result = End;
-	}
-	
-	return Result;
 }
 
 void AScharacter::MoveForward(float Value)
@@ -164,6 +119,16 @@ void AScharacter::MoveRight(float Value)
 	AddMovementInput(RightVector, Value);
 }
 
+void AScharacter::SprintStart()
+{
+	ActionComponent->StartActionByName(this, "Sprint");
+}
+
+void AScharacter::SprintStop()
+{
+	ActionComponent->StopActionByName(this, "Sprint");
+}
+
 void AScharacter::Turn(float Value)
 {
 	AddControllerYawInput(Value);
@@ -181,23 +146,17 @@ void AScharacter::Jump()
 
 void AScharacter::PrimaryAttack()
 {
-	PlayAnimMontage(AttackAnim);
-	PlayCastingSpellEffect();
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &AScharacter::PrimaryAttack_TimeElapsed, 0.2f);
+	ActionComponent->StartActionByName(this, "PrimaryAttack");
 }
 
 void AScharacter::BlackHoleAttack()
 {
-	PlayAnimMontage(AttackAnim);
-	PlayCastingSpellEffect();	
-	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAttack, this, &AScharacter::BlackHoleAttack_TimeElapsed, 0.2f);	
+	ActionComponent->StartActionByName(this, "Blackhole");
 }
 
 void AScharacter::DashAttack()
 {
-	PlayAnimMontage(AttackAnim);
-	PlayCastingSpellEffect();	
-	GetWorldTimerManager().SetTimer(TimerHandle_DashAttack, this, &AScharacter::DashAttack_TimeElapsed, 0.2f);	
+	ActionComponent->StartActionByName(this, "Dash");
 }
 
 void AScharacter::PrimaryInteract()
@@ -206,26 +165,6 @@ void AScharacter::PrimaryInteract()
 	{
 		InteractionComponent->PrimaryInteract();	
 	}
-}
-
-void AScharacter::PlayCastingSpellEffect()
-{
-	UGameplayStatics::SpawnEmitterAttached(CastingEffect, GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
-}
-
-void AScharacter::PrimaryAttack_TimeElapsed()
-{
-	SpawnProjectileClass(MagicProjectileClass);
-}
-
-void AScharacter::BlackHoleAttack_TimeElapsed()
-{
-	SpawnProjectileClass(BlackHoleProjectileClass);
-}
-
-void AScharacter::DashAttack_TimeElapsed()
-{
-	SpawnProjectileClass(DashProjectileClass);
 }
 
 void AScharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)

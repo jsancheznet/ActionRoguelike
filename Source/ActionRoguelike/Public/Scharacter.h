@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Scharacter.generated.h"
 
+class USActionComponent;
 class USAttributeComponent;
 class ASMagicProjectile;
 class UCameraComponent;
@@ -34,36 +35,19 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USAttributeComponent *AttributeComp;
-	
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> MagicProjectileClass;
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> BlackHoleProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> DashProjectileClass;
-	
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage *AttackAnim;
-
-	/* Particle System played during attack animation */
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UParticleSystem* CastingEffect;	
-
-	UPROPERTY(VisibleAnywhere, Category = "Effects")
-	FName HandSocketName;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USActionComponent *ActionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;
-
-	FTimerHandle TimerHandle_PrimaryAttack;
-	FTimerHandle TimerHandle_BlackHoleAttack;
-	FTimerHandle TimerHandle_DashAttack;
 	
 	void MoveForward(float Value);
 	void MoveRight(float Value);
-	
+
+	void SprintStart();
+	void SprintStop();
+		
 	void Turn(float Value);
 	void LookUp(float Value);
 
@@ -72,12 +56,8 @@ protected:
 	void PrimaryAttack();
 	void BlackHoleAttack();
 	void DashAttack();
+	
 	void PrimaryInteract();
-	void PlayCastingSpellEffect();	
-
-	void PrimaryAttack_TimeElapsed();
- 	void BlackHoleAttack_TimeElapsed();
-	void DashAttack_TimeElapsed();
 
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
@@ -97,9 +77,4 @@ public:
 	
 	UFUNCTION(Exec)
 	void HealSelf(float Amount = 100);
-
-private:
-	void SpawnProjectileClass(TSubclassOf<AActor> ProjectileClass);
-	FVector GetProjectileTarget();
-	
 };

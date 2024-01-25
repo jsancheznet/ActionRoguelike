@@ -4,6 +4,10 @@
 #include "SAttributeComponent.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 
+/*
+ * TODO(Jsanchez): The Barrel explodes automatically at game start for no aparent reason, fix it
+ */
+
 ASExplosiveBarrel::ASExplosiveBarrel()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.

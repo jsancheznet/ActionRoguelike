@@ -5,6 +5,10 @@
 #include "SGameplayFunctionLibrary.h"
 #include "Components/SphereComponent.h"
 
+/*
+ * TODO(Jsanchez): Shake camera on projectile explosion
+ */
+
 ASMagicProjectile::ASMagicProjectile()
 {
 	SphereComp->SetSphereRadius(20.0f);
