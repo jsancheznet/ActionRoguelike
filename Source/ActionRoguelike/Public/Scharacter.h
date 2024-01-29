@@ -41,7 +41,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;
-	
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 BlackholeRageCost;
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 

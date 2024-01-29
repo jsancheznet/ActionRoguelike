@@ -32,6 +32,8 @@ AScharacter::AScharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	TimeToHitParamName = "TimeToHit";
+
+	BlackholeRageCost = 25;
 }
 
 void AScharacter::PostInitializeComponents()
@@ -73,6 +75,9 @@ void AScharacter::Tick(float DeltaTime)
 	FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
 	// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
 	DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
+
+	FString MyRage = FString::Printf(TEXT("Rage: %d"), AttributeComp->GetRage());
+	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, *MyRage);
 
 }
 
@@ -151,7 +156,15 @@ void AScharacter::PrimaryAttack()
 
 void AScharacter::BlackHoleAttack()
 {
-	ActionComponent->StartActionByName(this, "Blackhole");
+	if(AttributeComp->HasEnoughRage(BlackholeRageCost))
+	{
+		ActionComponent->StartActionByName(this, "Blackhole");
+		AttributeComp->RemoveRage(BlackholeRageCost);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("NOT ENOUGH RAGE TO USE BLACKHOLE!"));
+	}
 }
 
 void AScharacter::DashAttack()
@@ -172,8 +185,11 @@ void AScharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 	if(Delta < 0.0f)
 	{
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
+
+		AttributeComp->AddRageFromDamage(Delta);
 	}
-	
+
+	// Dead
 	if(NewHealth <= 0.0f && Delta < 0.0f)
 	{
 		APlayerController *PC = Cast<APlayerController>(GetController());
