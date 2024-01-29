@@ -8,6 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "SMagicProjectile.generated.h"
 
+class USActionEffect;
 class USoundCue;
 
 UCLASS()
@@ -22,6 +23,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	FGameplayTag ParryTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	TSubclassOf<USActionEffect> BurningActionClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float DamageAmount;
