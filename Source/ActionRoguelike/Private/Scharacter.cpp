@@ -32,8 +32,6 @@ AScharacter::AScharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	TimeToHitParamName = "TimeToHit";
-
-	BlackholeRageCost = 25;
 }
 
 void AScharacter::PostInitializeComponents()
@@ -156,15 +154,7 @@ void AScharacter::PrimaryAttack()
 
 void AScharacter::BlackHoleAttack()
 {
-	if(AttributeComp->HasEnoughRage(BlackholeRageCost))
-	{
-		ActionComponent->StartActionByName(this, "Blackhole");
-		AttributeComp->RemoveRage(BlackholeRageCost);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("NOT ENOUGH RAGE TO USE BLACKHOLE!"));
-	}
+	ActionComponent->StartActionByName(this, "Blackhole");
 }
 
 void AScharacter::DashAttack()
