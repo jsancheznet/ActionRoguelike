@@ -3,6 +3,7 @@
 
 #include "SItemChest.h"
 
+#include "SAttributeComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
