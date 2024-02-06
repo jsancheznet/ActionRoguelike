@@ -74,8 +74,8 @@ void AScharacter::Tick(float DeltaTime)
 	// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
 	DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
 
-	FString MyRage = FString::Printf(TEXT("Rage: %d"), AttributeComp->GetRage());
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, *MyRage);
+	// FString MyRage = FString::Printf(TEXT("Rage: %d"), AttributeComp->GetRage());
+	// GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, *MyRage);
 
 }
 
