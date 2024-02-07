@@ -21,6 +21,10 @@ class ACTIONROGUELIKE_API ISGameplayInterface
 	GENERATED_BODY()
 public:
 
+	// Called after the Actor state was restored from a SaveGame file
+	UFUNCTION(BlueprintNativeEvent)
+	void OnActorLoaded();
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void Interact(APawn *InstigatorPawn);
 	
