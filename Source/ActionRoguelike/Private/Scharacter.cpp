@@ -68,11 +68,11 @@ void AScharacter::Tick(float DeltaTime)
 	// Set line end in direction of the actor's forward
 	FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
 	// Draw Actor's Direction
-	DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
+	// DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
 
 	FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
 	// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
-	DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
+	// DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
 
 	// FString MyRage = FString::Printf(TEXT("Rage: %d"), AttributeComp->GetRage());
 	// GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, *MyRage);
