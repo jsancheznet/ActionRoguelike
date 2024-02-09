@@ -75,12 +75,8 @@ void AScharacter::Tick(float DeltaTime)
 		// DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);		
 	}
 
-	ASPlayerState *PS = Cast<ASPlayerState>(GetPlayerState());
-	if(PS)
-	{
-		FString Msg = FString::Printf(TEXT("Credits: %d : %s"), PS->GetCredits(), *GetNameSafe(this));
-		LogOnScreen(GetWorld(), Msg, FColor::White, 0.0f);
-	}
+	FString Msg = FString::Printf(TEXT("Health: %f : %s"), AttributeComp->GetHealth(), *GetNameSafe(this));
+	LogOnScreen(GetWorld(), Msg, FColor::White, 0.0f);
 }
 
 // Called to bind functionality to input
