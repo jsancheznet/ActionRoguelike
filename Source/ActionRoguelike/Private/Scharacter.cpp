@@ -74,9 +74,6 @@ void AScharacter::Tick(float DeltaTime)
 		// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
 		// DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);		
 	}
-
-	FString Msg = FString::Printf(TEXT("Health: %f : %s"), AttributeComp->GetHealth(), *GetNameSafe(this));
-	LogOnScreen(GetWorld(), Msg, FColor::White, 0.0f);
 }
 
 // Called to bind functionality to input
